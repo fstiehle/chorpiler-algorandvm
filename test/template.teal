@@ -1,0 +1,34 @@
+#pragma version 10
+#define PAR_1 addr RFGEHKTFSLPIEGZYNVYALM6J4LJX4RPWERDWYS2PFKNVDWW3NG7MECQTJY
+
+byte "tokenState" 
+dup // later needed Stack -1: "tokenState"
+app_global_get // Stack 0: tokenState
+
+// TASK 1
+// Check task is enabled
+dup // Stack 1: tokenState
+int 1 // Stack 2: 1
+& // Stack 1: 1 or 0
+==
+// Check participant is allowed
+PAR_1 // Stack 1: PAR_1 TODO: Read TX Signer
+PAR_1 // Stack 2: RFGEHKTFSLPIEGZYNVYALM6J4LJX4RPWERDWYS2PFKNVDWW3NG7MECQTJY
+== // Stack 1: 0 or 1
+// Check previous conditions
+&& // Stack 1: 0 or 1
+// Branch if conditions true
+bnz task_1
+
+// Tasks
+int 0
+return
+task_1:
+// Stack -1: "tokenState"
+pop // Stack 0: tokenState
+int 1 // Stack 1: 1
+~ // Stack 1: 0
+& // Stack 0: 0
+int 2 // Stack 1: 2
+| // Stack 0: 2
+app_global_put 
