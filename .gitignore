@@ -1,0 +1,7 @@
+sandbox
+lib
+.DS_Store
+node_modules
+.vscode
+*.tgz
+cache

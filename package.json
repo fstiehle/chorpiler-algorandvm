@@ -1,0 +1,31 @@
+{
+  "name": "@chorpiler/algorandvm",
+  "version": "0.1.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha test",
+    "chain": "sandbox/sandbox"
+  },
+  "author": "Fabian Stiehle",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.12",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18.19.21",
+    "chai": "^4.4.1",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^10.3.0",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "algosdk": "^2.7.0"
+  }
+}
