@@ -2,33 +2,77 @@
 #define PAR_1 addr RFGEHKTFSLPIEGZYNVYALM6J4LJX4RPWERDWYS2PFKNVDWW3NG7MECQTJY
 
 byte "tokenState" 
-dup // later needed Stack -1: "tokenState"
-app_global_get // Stack 0: tokenState
+// S
+dup 
+// S, S
+app_global_get 
+// S, global_tokenState
+dup 
+// S, global_tokenState, global_tokenState
+int 0
+// S, global_tokenState, global_tokenState, 0
+==
+// S, global_tokenState, Int
+bnz init
+// S, global_tokenState
 
+main:
 // TASK 1
 // Check task is enabled
-dup // Stack 1: tokenState
-int 1 // Stack 2: 1
-& // Stack 1: 1 or 0
+// S, global_tokenState
+dup
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 1 
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
 ==
+// S, global_tokenState, Int
 // Check participant is allowed
-PAR_1 // Stack 1: PAR_1 TODO: Read TX Signer
-PAR_1 // Stack 2: RFGEHKTFSLPIEGZYNVYALM6J4LJX4RPWERDWYS2PFKNVDWW3NG7MECQTJY
-== // Stack 1: 0 or 1
+PAR_1 // TODO: Read TX Signer
+// S, global_tokenState, Int, addr
+PAR_1
+// S, global_tokenState, Int, addr, addr
+== 
+// S, global_tokenState, Int, Int
 // Check previous conditions
-&& // Stack 1: 0 or 1
-// Branch if conditions true
+&& 
+// S, global_tokenState
 bnz task_1
 
 // Tasks
 int 0
 return
 task_1:
-// Stack -1: "tokenState"
-pop // Stack 0: tokenState
-int 1 // Stack 1: 1
-~ // Stack 1: 0
-& // Stack 0: 0
-int 2 // Stack 1: 2
-| // Stack 0: 2
+int 1 
+// S, global_tokenState, 1
+~ 
+// S, global_tokenState, Int
+&
+// S, Int
+int 2 
+// S, Int, 2
+|
+// S, Int
 app_global_put 
+// ...
+b auto
+
+init:
+// S, global_tokenState
+pop
+// S
+int 1
+// S, 1
+app_global_put 
+// ...
+byte "tokenState" 
+int 1
+// S, 1
+b main
+
+// Automatic transitions
+auto:
+byte "tokenState" 
+app_global_get 

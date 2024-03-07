@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "mocha test",
+    "test": "mocha test --timeout 25000",
     "chain": "sandbox/sandbox"
   },
   "author": "Fabian Stiehle",

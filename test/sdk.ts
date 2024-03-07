@@ -7,6 +7,21 @@ const token = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 const server = 'http://127.0.0.1';
 const port = 4001;
 const client = new algosdk.Algodv2(token, server, port);
+const acct = algosdk.mnemonicToSecretKey("friend across welcome dish nothing scan furnace feed gloom divert stay gas crazy meat portion toss adapt laptop target jungle smooth level great abandon patch");
+const signer = algosdk.makeBasicAccountTransactionSigner(acct);
+
+// From https://github.com/algorand/js-algorand-sdk/blob/develop/examples/utils.ts
+export async function compileProgram(
+  client: algosdk.Algodv2,
+  source: string
+) {
+  const compileResponse = await client.compile(Buffer.from(source)).do();
+  const compiledBytes = new Uint8Array(
+    Buffer.from(compileResponse.result, 'base64')
+  );
+  return compiledBytes;
+}
+
 const tealTest = fs.readFileSync(
   path.join(__dirname, 'test.teal'),
   'utf8'
@@ -19,41 +34,99 @@ const tealTemplate = fs.readFileSync(
 describe('Test Sandbox', () => {  
 
   it("Is Sandbox up",  async () => { 
-    await client.status().do().catch((e) => {
-      console.log(e);
-      assert(false, "Could not ask client status");
-    });
+    await client.status().do();
   });
 
   it("Compile test.teal",  async () => { 
 
-    await client.compile(Buffer.from(tealTest)).do()
-    .catch((e) => {
-      console.log(e);
-      assert(false, "Could not compile via client");
-    })
+    await compileProgram(client, tealTest)
     .then((r) => {
-      expect(r).has.property("hash");
-      expect(r).has.property("result");
+      expect(r).to.be.instanceOf(Uint8Array)
     });
 
   });
 
   it("Compile template.teal",  async () => { 
 
-    await client.compile(Buffer.from(tealTemplate)).do()
-    .catch((e) => {
-      console.log(e);
-      assert(false, "Could not compile via client");
-    })
+    await compileProgram(client, tealTemplate)
     .then((r) => {
-      expect(r).has.property("hash");
-      expect(r).has.property("result");
+      expect(r).to.be.instanceOf(Uint8Array)
     });
 
   });
 
- /*  const mn = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
+  it("Compile & Deploy",  async () => { 
+
+    const suggestedParams = await client.getTransactionParams().do();
+    const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
+      from: acct.addr,
+      approvalProgram: await compileProgram(client, tealTemplate),
+      clearProgram: await compileProgram(client, tealTest),
+      numGlobalByteSlices: 0,
+      numGlobalInts: 1,
+      numLocalByteSlices: 0,
+      numLocalInts: 0,
+      suggestedParams,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    });
+  
+    await client
+      .sendRawTransaction(appCreateTxn.signTxn(acct.sk))
+      .do();
+  
+    await algosdk.waitForConfirmation(
+      client,
+      appCreateTxn.txID().toString(),
+      2
+    )
+    .then((r) => {
+      console.log(r)
+      //expect(r).to.contain("application-index");
+    });
+
+  });
+
+
+ /*  
+ 
+ const atc = new algosdk.AtomicTransactionComposer;
+    atc.addTransaction({
+      txn: txAppCreate,
+      signer: signer,
+    });
+  
+    const simreq = new algosdk.modelsv2.SimulateRequest({
+      txnGroups: [],
+      allowEmptySignatures: true,
+      execTraceConfig: new algosdk.modelsv2.SimulateTraceConfig({
+          enable: true,
+          scratchChange: true,
+          stackChange: true,
+          stateChange: true,
+      }),
+    });
+    const simres = await atc.simulate(client, simreq);
+
+    console.log(simres.simulateResponse.txnGroups[0].txnResults[0].txnResult.applicationIndex);
+
+ const simreq = new algosdk.modelsv2.SimulateRequest({
+      txnGroups: [],
+      allowEmptySignatures: true,
+      execTraceConfig: new algosdk.modelsv2.SimulateTraceConfig({
+          enable: true,
+          scratchChange: true,
+          stackChange: true,
+          stateChange: true,
+      }),
+    });
+    const simres = await atc.simulate(client, simreq);
+
+    console.log(simres);
+ 
+ 
+ 
+ 
+ const mn = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon invest';
 const acct = algosdk.mnemonicToSecretKey(mn);
 const signer = algosdk.makeBasicAccountTransactionSigner(acct);
 
