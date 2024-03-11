@@ -1,4 +1,4 @@
-import {assert, expect} from 'chai';
+import {expect} from 'chai';
 import algosdk from "algosdk";
 import fs from 'fs';
 import path from 'path';
@@ -8,10 +8,11 @@ const server = 'http://127.0.0.1';
 const port = 4001;
 const client = new algosdk.Algodv2(token, server, port);
 const acct = algosdk.mnemonicToSecretKey("friend across welcome dish nothing scan furnace feed gloom divert stay gas crazy meat portion toss adapt laptop target jungle smooth level great abandon patch");
-const signer = algosdk.makeBasicAccountTransactionSigner(acct);
+
+let appID = 0;
 
 // From https://github.com/algorand/js-algorand-sdk/blob/develop/examples/utils.ts
-export async function compileProgram(
+async function compileProgram(
   client: algosdk.Algodv2,
   source: string
 ) {
@@ -55,8 +56,12 @@ describe('Test Sandbox', () => {
 
   });
 
-  it("Compile & Deploy",  async () => { 
+});
 
+describe('Test template.teal', () => {
+
+  before("Compile & Deploy",  async () => { 
+    
     const suggestedParams = await client.getTransactionParams().do();
     const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
       from: acct.addr,
@@ -69,23 +74,47 @@ describe('Test Sandbox', () => {
       suggestedParams,
       onComplete: algosdk.OnApplicationComplete.NoOpOC,
     });
-  
+
     await client
       .sendRawTransaction(appCreateTxn.signTxn(acct.sk))
       .do();
-  
-    await algosdk.waitForConfirmation(
+
+    const res = await algosdk.waitForConfirmation(
       client,
       appCreateTxn.txID().toString(),
-      2
-    )
-    .then((r) => {
-      console.log(r)
-      //expect(r).to.contain("application-index");
-    });
+      2 )
+
+    expect(res).to.contain.keys("application-index");
+    expect(res["application-index"]).to.be.a("Number");
+    appID = res["application-index"];
+    console.log(appID);
 
   });
 
+  it('run template.teal', async () => {
+
+    const suggestedParams = await client.getTransactionParams().do();
+    const tx = algosdk.makeApplicationCallTxnFromObject({
+      from: acct.addr,
+      suggestedParams,
+      appIndex: appID,
+      onComplete: algosdk.OnApplicationComplete.NoOpOC,
+    });
+
+    await client
+      .sendRawTransaction(tx.signTxn(acct.sk))
+      .do();
+
+    const res = await algosdk.waitForConfirmation(
+      client,
+      tx.txID().toString(),
+      2 )
+    
+    console.log(res);
+
+  });
+
+});
 
  /*  
  
@@ -163,5 +192,3 @@ const clear_b64 = "CYEB";
 
     console.log(JSON.stringify(simres, null, 2));
 })(); */
-
-});
