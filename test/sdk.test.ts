@@ -24,11 +24,11 @@ async function compileProgram(
 }
 
 const tealTest = fs.readFileSync(
-  path.join(__dirname, 'test.teal'),
+  path.join(__dirname, 'teal/test.teal'),
   'utf8'
 );
 const tealTemplate = fs.readFileSync(
-  path.join(__dirname, 'template.teal'),
+  path.join(__dirname, 'teal/template.teal'),
   'utf8'
 );
 
