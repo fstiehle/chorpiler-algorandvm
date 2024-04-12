@@ -4,10 +4,8 @@ import chaiAsPromised from 'chai-as-promised';
 import util from 'util';
 import path from "path";
 import chorpiler, { INetParser, ProcessEncoding, TemplateEngine } from "chorpiler";
-import { TealContractGenerator } from '../src/Generator/target/Teal/TealContractGenerator';
-
-const BPMN_PATH = path.join(__dirname, 'bpmn');
-const OUTPUT_PATH = path.join(__dirname, 'generated');
+import { TealContractGenerator } from '../../src/Generator/target/Teal/TealContractGenerator';
+import { BPMN_PATH, OUTPUT_PATH } from "../config";
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
@@ -24,7 +22,7 @@ const testCase = async (bpmnPath: string, parser: INetParser, generator: Templat
   const output = await parseCompile(bpmnPath, parser, generator);
 
   await writeFile(
-    path.join(outputPath.replace(".sol", "_encoding.json")), 
+    path.join(outputPath.replace(".teal", "_encoding.json")), 
     JSON.stringify(ProcessEncoding.toJSON(output.encoding)), 
     { flag: 'w+' }
   );
@@ -85,12 +83,11 @@ describe('Test Parsing and Generation', () => {
         path.join(BPMN_PATH, '/cases/incident-management/incident-management.bpmn'), 
         parser, 
         tealGenerator, 
-        path.join(OUTPUT_PATH, "/incident-management/IM_ProcessExecution.sol"),
+        path.join(OUTPUT_PATH, "/incident-management/IM_ProcessExecution.teal"),
         "IM_"
       );
-      
+    
     });
 
   });
-
 });

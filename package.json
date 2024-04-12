@@ -9,12 +9,13 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "mocha test --timeout 25000",
+    "test": "dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output",
     "chain": "sandbox/sandbox"
   },
   "author": "Fabian Stiehle",
   "license": "ISC",
   "devDependencies": {
+    "@dotenvx/dotenvx": "^0.32.0",
     "@types/chai": "^4.3.12",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^10.0.6",

@@ -1,0 +1,539 @@
+// Try: Make a function we can jump to 
+// that does the recuring consume produce logic
+#pragma version 10
+#define TOKEN_STATE byte "s"
+#define PAR_0 addr [ADDR_PAR_0]
+#define PAR_1 addr [ADDR_PAR_1]
+#define PAR_2 addr [ADDR_PAR_2]
+#define PAR_3 addr [ADDR_PAR_3]
+#define PAR_4 addr [ADDR_PAR_4]
+
+TOKEN_STATE
+// S
+TOKEN_STATE
+// S, S
+app_global_get 
+// S, global_tokenState
+dup 
+// S, global_tokenState, global_tokenState
+int 0
+// S, global_tokenState, global_tokenState, 0
+==
+// S, global_tokenState, Int
+bnz init
+// S, global_tokenState
+
+// main
+// -------------------------------------------------------------
+
+// TASK 0
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 0
+==
+bnz task_0
+
+// TASK 1
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 1
+==
+bnz task_1
+
+// TASK 2
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 2
+==
+bnz task_2
+
+// TASK 3
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 3
+==
+bnz task_3
+
+// TASK 4
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 4
+==
+bnz task_4
+
+// TASK 5
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 5
+==
+bnz task_5
+
+// TASK 6
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 6
+==
+bnz task_6
+
+// TASK 7
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 7
+==
+bnz task_7
+
+// TASK 8
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 8
+==
+bnz task_8
+
+// TASK 9
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 9
+==
+bnz task_9
+
+// fall through
+int 0
+return
+
+
+task_0:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 1
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 1
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_0
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 1
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 2 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_1:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 2
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_4
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 2
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 12 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_2:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 4
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 4
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_1
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 4
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 16 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_3:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 8
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 8
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_1
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 8
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 32 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_4:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 64
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 64
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_3
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 64
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 128 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_5:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 128
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 128
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_2
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 128
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 256 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_6:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 256
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 256
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_2
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 256
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 512 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_7:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 512
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 512
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_3
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 512
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 1024 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_8:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 1024
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 1024
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_4
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 1024
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 2048 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+task_9:
+// Check task is enabled
+// S, global_tokenState
+dup
+// S, global_tokenState, global_tokenState, global_tokenState
+int 2048
+// S, global_tokenState, global_tokenState, global_tokenState, 1
+&
+// S, global_tokenState, global_tokenState, Int
+int 2048
+==
+// S, global_tokenState, Int
+// Check participant is allowed
+txn Sender // Read Sender
+// S, global_tokenState, Int, addr
+PAR_4
+// S, global_tokenState, Int, addr, addr
+==
+// S, global_tokenState, Int, Int
+// Check previous conditions
+&& 
+// S, global_tokenState, Int
+assert // return if zero
+// S, global_tokenState
+
+int 2048
+// S, global_tokenState, consuming token ID
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 0 
+// S, Int, producing token ID
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+// Automatic transitions (need to be looped as more than one could fire)
+auto_loop:
+// --------------------
+// Transition
+// S, to_be_global_tokenState
+dup
+// S, to_be_global_tokenState, to_be_global_tokenState
+int 48
+// S, to_be_global_tokenState, to_be_global_tokenState, 2
+&
+// S, to_be_global_tokenState, Int
+bnz auto_48
+// S, to_be_global_tokenState
+
+// no autonomous transitions to be fired
+// check for end (state == 0)
+dup
+// S, to_be_global_tokenState, to_be_global_tokenState
+bz end
+// S, to_be_global_tokenState
+// return success
+app_global_put
+int 1
+return
+
+auto_48:
+int 48
+// S, global_tokenState, 2
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 64 
+// S, Int, 4
+|
+// S, to_be_global_tokenState
+b auto_loop
+
+init:
+// S, global_tokenState
+pop
+// S
+int 1
+// S, 1
+app_global_put
+// ...
+int 1
+// 1
+return 
+
+end:
+// S, to_be_global_tokenState
+pop
+app_global_del
+int 1
+return

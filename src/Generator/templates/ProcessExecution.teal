@@ -1,14 +1,16 @@
+// Try: Make a function we can jump to 
+// that does the recuring consume produce logic
 #pragma version 10
 #define TOKEN_STATE byte "s"
 {{#participants}}
-#define PAR_1 addr RFGEHKTFSLPIEGZYNVYALM6J4LJX4RPWERDWYS2PFKNVDWW3NG7MECQTJY
+#define PAR_{{id}} addr [ADDR_PAR_{{id}}]
 {{/participants}}
 
 TOKEN_STATE
 // S
 TOKEN_STATE
 // S, S
-app_global_get // to debug: pop; int 1;
+app_global_get 
 // S, global_tokenState
 dup 
 // S, global_tokenState, global_tokenState
@@ -19,47 +21,104 @@ int 0
 bnz init
 // S, global_tokenState
 
-main:
-// TASK 1
+// main
+// -------------------------------------------------------------
+{{#manualTransitions}}
+
+// TASK {{id}}
+// --------------------
+txna ApplicationArgs 0
+btoi
+int {{id}}
+==
+bnz task_{{id}}
+{{/manualTransitions}}
+
+// fall through
+int 0
+return
+
+{{#manualTransitions}}
+
+task_{{id}}:
 // Check task is enabled
 // S, global_tokenState
 dup
-dup
 // S, global_tokenState, global_tokenState, global_tokenState
-int 1
+int {{consume}}
 // S, global_tokenState, global_tokenState, global_tokenState, 1
 &
 // S, global_tokenState, global_tokenState, Int
+int {{consume}}
 ==
 // S, global_tokenState, Int
 // Check participant is allowed
-PAR_1 // TODO: Read TX Signer
+txn Sender // Read Sender
 // S, global_tokenState, Int, addr
-PAR_1
+PAR_{{initiator}}
 // S, global_tokenState, Int, addr, addr
 ==
 // S, global_tokenState, Int, Int
 // Check previous conditions
 && 
+// S, global_tokenState, Int
+assert // return if zero
 // S, global_tokenState
-bnz task_1
 
-// Tasks
-int 0
-return
-
-task_1:
-int 1
-// S, global_tokenState, 1
+int {{consume}}
+// S, global_tokenState, consuming token ID
 ~
 // S, global_tokenState, Int
 &
 // S, Int
-int 2 
-// S, Int, 2
+int {{produce}} 
+// S, Int, producing token ID
 |
 // S, to_be_global_tokenState
 b auto_loop
+{{/manualTransitions}}
+
+// Automatic transitions (need to be looped as more than one could fire)
+auto_loop:
+{{#autonomousTransitions}}
+// --------------------
+// Transition
+// S, to_be_global_tokenState
+dup
+// S, to_be_global_tokenState, to_be_global_tokenState
+int {{consume}}
+// S, to_be_global_tokenState, to_be_global_tokenState, 2
+&
+// S, to_be_global_tokenState, Int
+bnz auto_{{consume}}
+// S, to_be_global_tokenState
+
+{{/autonomousTransitions}}
+// no autonomous transitions to be fired
+// check for end (state == 0)
+dup
+// S, to_be_global_tokenState, to_be_global_tokenState
+bz end
+// S, to_be_global_tokenState
+// return success
+app_global_put
+int 1
+return
+
+{{#autonomousTransitions}}
+auto_{{consume}}:
+int {{consume}}
+// S, global_tokenState, 2
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int {{produce}} 
+// S, Int, 4
+|
+// S, to_be_global_tokenState
+b auto_loop
+{{/autonomousTransitions}}
 
 init:
 // S, global_tokenState
@@ -73,30 +132,9 @@ int 1
 // 1
 return 
 
-// Automatic transitions (need to be looped as more than one could fire)
-auto_loop:
+end:
 // S, to_be_global_tokenState
-dup
-// S, to_be_global_tokenState, to_be_global_tokenState
-int 2
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
-&
-// S, to_be_global_tokenState, Int
-bnz auto_2
-// S, to_be_global_tokenState
-app_global_put
+pop
+app_global_del
 int 1
 return
-
-auto_2:
-int 2
-// S, global_tokenState, 2
-~
-// S, global_tokenState, Int
-&
-// S, Int
-int 4 
-// S, Int, 4
-|
-// S, to_be_global_tokenState
-b auto_loop

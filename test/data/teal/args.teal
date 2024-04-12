@@ -1,0 +1,35 @@
+#pragma version 10
+#define TOKEN_STATE byte "s" 
+
+TOKEN_STATE
+// S
+TOKEN_STATE
+// S, S
+app_global_get // to debug: pop; int 1;
+// S, global_tokenState
+dup 
+// S, global_tokenState, global_tokenState
+int 0
+// S, global_tokenState, global_tokenState, 0
+==
+// S, global_tokenState, Int
+bnz init
+// S, global_tokenState
+
+txna ApplicationArgs 0
+btoi
+int 0
+==
+return
+
+init:
+// S, global_tokenState
+pop
+// S
+int 1
+// S, 1
+app_global_put
+// ...
+int 1
+// 1
+return
