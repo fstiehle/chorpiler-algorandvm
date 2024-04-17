@@ -11,7 +11,7 @@ import chorpiler, { ProcessEncoding } from "chorpiler";
 import { BPMN_PATH, OUTPUT_PATH, algod } from "../config";
 import { EventLog } from "chorpiler/lib/util/EventLog";
 import algosdk from "algosdk";
-import { assertGlobalState, deploy } from "../util";
+import { getGlobalState, deploy } from "../util";
 
 const FAUCET_MNEMONIC = process.env.FAUCET_MNEMONIC!;
 const NR_NON_CONFORMING_TRACES = 10;
@@ -61,12 +61,13 @@ const testCase = (
       }
 
       // debug
-      fs.writeFileSync(path.join(OUTPUT_PATH, 'supply-chain', '1.teal'), tealCode, { flag: 'w+' })
+      fs.writeFileSync(path.join(OUTPUT_PATH, 'supply-chain', '1.teal'), tealCode, { flag: 'w+' });
     })
 
     // Requires a foreach to work: https://github.com/mochajs/mocha/issues/3074
     eventLog.traces.forEach((trace, i) => {
 
+      let tokenState = 0;
       it(`Replay Conforming Trace ${i}`, async () => {
         const appID = await deploy(client, faucet, tealCode);
         expect(appID).to.be.a("Number");
@@ -77,7 +78,9 @@ const testCase = (
           const taskID = processEncoding.tasks.get(event.name);
           assert(participant !== undefined && taskID !== undefined,
             `source '${event.source}' event '${event.name}' not found`);
- 
+          
+          // console.log(await getGlobalState(client, appID))
+          tokenState = (await getGlobalState(client, appID)).uint;
           const suggestedParams = await client.getTransactionParams().do();
           const tx = algosdk.makeApplicationNoOpTxnFromObject({
             from: participant.addr,
@@ -86,19 +89,22 @@ const testCase = (
             appArgs: [algosdk.encodeUint64(taskID)],
           });
 
-          await client
+          const { txId } = await client
             .sendRawTransaction(tx.signTxn(participant.sk))
             .do();
 
-          const res = await algosdk.waitForConfirmation(
+          await algosdk.waitForConfirmation(
             client,
-            tx.txID().toString(),
+            txId,
             2 );
 
-          console.log(taskID)
-          assertGlobalState(client, appID); 
-          
+          const newState = (await getGlobalState(client, appID)).uint;
+          // Expect that tokenState has changed!
+          expect(newState).to.not.equal(tokenState);
+          tokenState = newState;
         }
+
+        expect ((await getGlobalState(client, appID)).uint === 0);
       });
     });
 
@@ -108,30 +114,49 @@ const testCase = (
     badLog.traces.forEach((trace, i) => {
 
       it(`Replay Non-Conforming Trace ${i}`, async () => {
-        /* const r = await deploy(factory, processEncoding);
-        const contracts = r.contracts;
-        const contract = [...contracts.values()][0];
+        const appID = await deploy(client, faucet, tealCode);
+        expect(appID).to.be.a("Number");
 
         let eventsRejected = 0;
         for (const event of trace) {
-
-          const participant = contracts.get(event.source);
+          const participant = participants.get(event.source);
           const taskID = processEncoding.tasks.get(event.name);
           assert(participant !== undefined && taskID !== undefined,
             `source '${event.source}' event '${event.name}' not found`);
+            
+          const suggestedParams = await client.getTransactionParams().do();
+          const tx = algosdk.makeApplicationNoOpTxnFromObject({
+            from: participant.addr,
+            suggestedParams,
+            appIndex: appID,
+            appArgs: [algosdk.encodeUint64(taskID)],
+          });
 
-          const preTokenState = await contract.tokenState();
-          await (await participant.enact(taskID)).wait(1);
+          try {
+            const { txId } = await client
+              .sendRawTransaction(tx.signTxn(participant.sk))
+              .do()
 
-          if ((await contract.tokenState()).eq(preTokenState)) eventsRejected++;
+            await algosdk.waitForConfirmation(
+              client,
+              txId,
+              1 );
+
+          } catch (e) {
+              if ((e.message as string).includes("assert failed")) eventsRejected++;
+          }
+
         }
 
+        const finalState = await getGlobalState(client, appID)
+        // console.log(finalState.uint)
         // Expect that tokenState has at least NOT changed once (one non-conforming event)
         // or end event has not been reached (if only an event was removed, but no non-conforming was added)
-        expect(eventsRejected > 0 || !(await contract.tokenState()).eq(0)); */
+        expect(eventsRejected > 0 || finalState.uint !== 0); 
+        // console.log("#rejected", eventsRejected)
+
       });
     });
-
   });
 }
 

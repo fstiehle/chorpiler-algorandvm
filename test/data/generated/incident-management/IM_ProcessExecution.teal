@@ -444,8 +444,11 @@ auto_loop:
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 int 16
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
+// S, global_tokenState, global_tokenState, Int
+int 16
+==
 // S, to_be_global_tokenState, Int
 bnz auto_16
 // S, to_be_global_tokenState
@@ -456,8 +459,11 @@ bnz auto_16
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 int 64
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
+// S, global_tokenState, global_tokenState, Int
+int 64
+==
 // S, to_be_global_tokenState, Int
 bnz auto_64
 // S, to_be_global_tokenState
@@ -468,8 +474,11 @@ bnz auto_64
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 int 4
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
+// S, global_tokenState, global_tokenState, Int
+int 4
+==
 // S, to_be_global_tokenState, Int
 bnz auto_4
 // S, to_be_global_tokenState

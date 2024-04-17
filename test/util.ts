@@ -49,8 +49,12 @@ export const deploy = async (client: algosdk.Algodv2, acct: algosdk.Account, tea
 }
 
 // From https://developer.algorand.org/docs/get-details/dapps/smart-contracts/frontend/apps/#read-state
-export const assertGlobalState = async (client: algosdk.Algodv2, appId: number) => {
+export const getGlobalState = async (client: algosdk.Algodv2, appId: number) => {
   const appInfo = await client.getApplicationByID(appId).do();
+  if (!('global-state' in appInfo.params)) {
+    return { uint: 0 }
+  }
+
   const globalState = appInfo.params['global-state'][0];
   //console.log(`Raw global state ${JSON.stringify(globalState)}`);
 
@@ -59,5 +63,6 @@ export const assertGlobalState = async (client: algosdk.Algodv2, appId: number) 
   // decode b64 address value with encodeAddress and Buffer
   const globalValue = globalState.value.uint;
 
-  console.log(`Decoded global state ${globalKey}: ${globalValue}`);
+  //console.log(`Decoded global state ${globalKey}: ${globalValue}`);
+  return { uint: globalValue as number }
 }

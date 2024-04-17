@@ -489,8 +489,11 @@ auto_loop:
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 int 48
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
+// S, global_tokenState, global_tokenState, Int
+int 48
+==
 // S, to_be_global_tokenState, Int
 bnz auto_48
 // S, to_be_global_tokenState

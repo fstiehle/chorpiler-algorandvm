@@ -87,8 +87,11 @@ auto_loop:
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 int {{consume}}
-// S, to_be_global_tokenState, to_be_global_tokenState, 2
+// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
+// S, global_tokenState, global_tokenState, Int
+int {{consume}}
+==
 // S, to_be_global_tokenState, Int
 bnz auto_{{consume}}
 // S, to_be_global_tokenState
