@@ -14,7 +14,7 @@ import algosdk from "algosdk";
 import { getGlobalState, deploy } from "../util";
 
 const FAUCET_MNEMONIC = process.env.FAUCET_MNEMONIC!;
-const NR_NON_CONFORMING_TRACES = 10;
+const NR_NON_CONFORMING_TRACES = 200;
 const parser = new chorpiler.utils.XESParser();
 
 const client = new algosdk.Algodv2(algod.token, algod.server, algod.port);
@@ -104,7 +104,7 @@ const testCase = (
           tokenState = newState;
         }
 
-        expect ((await getGlobalState(client, appID)).uint === 0);
+        assert((await getGlobalState(client, appID)).uint === 0, "end event reached");
       });
     });
 
@@ -123,7 +123,7 @@ const testCase = (
           const taskID = processEncoding.tasks.get(event.name);
           assert(participant !== undefined && taskID !== undefined,
             `source '${event.source}' event '${event.name}' not found`);
-            
+
           const suggestedParams = await client.getTransactionParams().do();
           const tx = algosdk.makeApplicationNoOpTxnFromObject({
             from: participant.addr,
@@ -149,12 +149,14 @@ const testCase = (
         }
 
         const finalState = await getGlobalState(client, appID)
-        // console.log(finalState.uint)
+        //console.log("finalState", finalState.uint)
         // Expect that tokenState has at least NOT changed once (one non-conforming event)
         // or end event has not been reached (if only an event was removed, but no non-conforming was added)
-        expect(eventsRejected > 0 || finalState.uint !== 0); 
-        // console.log("#rejected", eventsRejected)
-
+        assert( 
+          eventsRejected > 0 || finalState.uint !== 0,
+          "tokenState has at least NOT changed once or end event has not been reached"
+        );
+        //console.log("#rejected", eventsRejected)
       });
     });
   });
