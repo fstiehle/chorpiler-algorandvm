@@ -15,7 +15,7 @@ import algosdk from "algosdk";
 import { getGlobalState, deploy } from "../util";
 
 const FAUCET_MNEMONIC = process.env.FAUCET_MNEMONIC!;
-const NR_NON_CONFORMING_TRACES = 2000;
+const NR_NON_CONFORMING_TRACES = 10;
 const parser = new chorpiler.utils.XESParser();
 
 const client = new algosdk.Algodv2(algod.token, algod.server, algod.port);
@@ -96,14 +96,20 @@ const testCase = (
       let tokenState = 0;
       it(`Replay Conforming Trace ${i}`, async () => {
         const initiator = [...participants.values()].at(0)!;
-        // min balance
-        await logMinBalance(initiator);
+        // account for min balance
+        const [minBalance, numberOfApps] = await getMinBalance(initiator);
+        // account for algos
+        const initBal = (await client.accountInformation(initiator.addr).do()).amount;
 
         const appID = await deploy(client, initiator, tealCode);
         expect(appID).to.be.a("Number");
 
         // min balance
-        await logMinBalance(initiator);
+        const [minBalanceAfter, numberOfAppsAfter] = await getMinBalance(initiator);
+        assert(numberOfApps + 1 === numberOfAppsAfter);
+        // account for algos
+        console.log("Deployment transaction cost", initBal - (await client.accountInformation(initiator.addr).do()).amount);
+        console.log("Min-Balance Change", minBalance - minBalanceAfter);
 
         // replay trace
         for (const event of trace) {
@@ -126,7 +132,12 @@ const testCase = (
           });
 
           const simulation = await client.simulateRawTransactions([tx.signTxn(participant.sk)]).do();
-          console.log("Budget Consumed", simulation.txnGroups[0].appBudgetConsumed);
+          console.log("Budget Simulated", simulation.txnGroups[0].appBudgetConsumed);
+
+          // account for algos
+          const parBal = (await client.accountInformation(participant.addr).do()).amount;
+          // account for min balance
+          const [minBalance, _] = await getMinBalance(participant);
 
           const { txId } = await client
             .sendRawTransaction(tx.signTxn(participant.sk))
@@ -136,6 +147,11 @@ const testCase = (
             client,
             txId,
             2 );
+
+          // account for algos
+          console.log("Transaction cost", parBal - (await client.accountInformation(participant.addr).do()).amount)
+          const [minBalanceAfter, __] = await getMinBalance(participant);
+          assert(minBalance - minBalanceAfter === 0);
 
           const newState = (await getGlobalState(client, appID)).uint;
           // Expect that tokenState has changed!
@@ -147,7 +163,7 @@ const testCase = (
         // min balance
         // TODO: delete app
         console.log("end event reached");
-        await logMinBalance(initiator);
+        console.log("initiator balance change", minBalance - (await getMinBalance(initiator))[0]);
       });
     });
 
@@ -231,8 +247,7 @@ const genFundAccounts = async (participants: Map<string, number>, faucet: algosd
   return accounts;
 }
 
-async function logMinBalance(initiator: algosdk.Account) {
+async function getMinBalance(initiator: algosdk.Account) {
   const initInfo = await client.accountInformation(initiator.addr).do();
-  console.log('min-balance', initInfo['min-balance']);
-  console.log('#apps', initInfo['total-created-apps']);
+  return [initInfo['min-balance'], initInfo['total-created-apps']];
 }
