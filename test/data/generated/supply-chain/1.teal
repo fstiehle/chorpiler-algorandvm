@@ -2,26 +2,32 @@
 // that does the recuring consume produce logic
 #pragma version 10
 #define TOKEN_STATE byte "s"
-#define PAR_0 addr UKE6MBEGVLROSXILSCYYBTLPC6VVZBVNJG633EYC5DFJWDAR5IV7KBTEK4
-#define PAR_1 addr ZLAGX4CIWVHSE2E7SPMPSSG7JJVHOL27RHXUKZBG4EIEIEXZCRHJABV7UM
-#define PAR_2 addr VFCCQPGTQUUINJT4URZ32SKXJ5IMI7FUVYG74DGZJMSFZXWGV7CCTRVJSA
-#define PAR_3 addr 7XGRYSWZB5467NVUDTNKJCIIYKI56RMTQ25NSUJX6WE23RN4Y3E7E56QII
-#define PAR_4 addr GRIDAX2BAER6MQ5SPUVRTRGE3AER7QQXINBFQJTOVQGCAFT2SPQY5MOCEI
+#define PAR_0 addr VJRRAIM3GAFTLN2YGYNSVZ54JFLYMUTCQGWQGJ47FREV5EOXE4KOEBG654
+#define PAR_1 addr KRLHKMKGTJT5GC5ZRJ6JXHWI56FEGW3EZU6TNNNEAC5CWW4RQ5W53AWRYU
+#define PAR_2 addr MJ2SXOU46HUSIH4GSJSLAUTZCILGWRAUVSSVO4O3HGCXUJTWVHQ3DJWVGA
+#define PAR_3 addr W4JQ7ECDEIKYOEGH6JB5ME2JBMCJVGUQT6TZSFFMJ6CI5QBJT27TIN6X5M
+#define PAR_4 addr AW2OK4S5GYKNBF7NNFYM3CPTNCDMV6L4WKBQ6X7ACHRPMOHIGV2HVM4MEI
 
-TOKEN_STATE
-// S
-TOKEN_STATE
-// S, S
-app_global_get 
-// S, global_tokenState
-dup 
-// S, global_tokenState, global_tokenState
-int 0
-// S, global_tokenState, global_tokenState, 0
+txn OnCompletion
+int UpdateApplication
 ==
-// S, global_tokenState, Int
+bnz update
+
+TOKEN_STATE // needed later
+TOKEN_STATE
+app_global_get 
+
+txn OnCompletion
+int DeleteApplication
+==
+bnz delete
+
+// init if necessary
+// -------------------
+dup 
+int 0
+==
 bnz init
-// S, global_tokenState
 
 // main
 // -------------------------------------------------------------
@@ -98,408 +104,308 @@ int 8
 ==
 bnz task_8
 
-// TASK 9
-// --------------------
-txna ApplicationArgs 0
-btoi
-int 9
-==
-bnz task_9
-
 // fall through
 int 0
 return
 
-
+// ----------------------------------------------------------
 task_0:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
+// -------------------
+dup // duplicate current token state on stack
 int 1
-// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
-// S, global_tokenState, global_tokenState, Int
 int 1
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
+// -------------------
+txn Sender 
 PAR_0
-// S, global_tokenState, Int, addr, addr
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
+// consume and produce
+// -------------------
 int 1
-// S, global_tokenState, consuming token ID
 ~
-// S, global_tokenState, Int
 &
-// S, Int
 int 2 
-// S, Int, producing token ID
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_1:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
+// -------------------
+dup // duplicate current token state on stack
 int 2
-// S, global_tokenState, global_tokenState, global_tokenState, 1
 &
-// S, global_tokenState, global_tokenState, Int
 int 2
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_4
-// S, global_tokenState, Int, addr, addr
+// -------------------
+txn Sender 
+PAR_1
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
+// consume and produce
+// -------------------
 int 2
-// S, global_tokenState, consuming token ID
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 12 
-// S, Int, producing token ID
+int 4 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_2:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 4
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 8
 &
-// S, global_tokenState, global_tokenState, Int
-int 4
+int 8
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
+// -------------------
+txn Sender 
 PAR_1
-// S, global_tokenState, Int, addr, addr
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 4
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 8
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 16 
-// S, Int, producing token ID
+int 0 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_3:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 8
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 4
 &
-// S, global_tokenState, global_tokenState, Int
-int 8
+int 4
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
+// -------------------
+txn Sender 
 PAR_1
-// S, global_tokenState, Int, addr, addr
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 8
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 4
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 32 
-// S, Int, producing token ID
+int 16 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_4:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 64
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 32
 &
-// S, global_tokenState, global_tokenState, Int
-int 64
+int 32
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_3
-// S, global_tokenState, Int, addr, addr
+// -------------------
+txn Sender 
+PAR_2
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 64
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 32
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 128 
-// S, Int, producing token ID
+int 8 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_5:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 128
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 16
 &
-// S, global_tokenState, global_tokenState, Int
-int 128
+int 16
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
+// -------------------
+txn Sender 
 PAR_2
-// S, global_tokenState, Int, addr, addr
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 128
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 16
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 256 
-// S, Int, producing token ID
+int 64 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_6:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 256
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 64
 &
-// S, global_tokenState, global_tokenState, Int
-int 256
+int 64
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_2
-// S, global_tokenState, Int, addr, addr
+// -------------------
+txn Sender 
+PAR_3
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 256
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 64
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 512 
-// S, Int, producing token ID
+int 128 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_7:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 512
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 128
 &
-// S, global_tokenState, global_tokenState, Int
-int 512
+int 128
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_3
-// S, global_tokenState, Int, addr, addr
+// -------------------
+txn Sender 
+PAR_4
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 512
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 128
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 1024 
-// S, Int, producing token ID
+int 256 
 |
-// S, to_be_global_tokenState
 b auto_loop
-
+// ----------------------------------------------------------
 task_8:
 // Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 1024
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+// -------------------
+dup // duplicate current token state on stack
+int 256
 &
-// S, global_tokenState, global_tokenState, Int
-int 1024
+int 256
 ==
-// S, global_tokenState, Int
 // Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_4
-// S, global_tokenState, Int, addr, addr
+// -------------------
+txn Sender 
+PAR_3
 ==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
+
+&& // Check previous
 assert // return if zero
-// S, global_tokenState
 
-int 1024
-// S, global_tokenState, consuming token ID
+// consume and produce
+// -------------------
+int 256
 ~
-// S, global_tokenState, Int
 &
-// S, Int
-int 2048 
-// S, Int, producing token ID
+int 32 
 |
-// S, to_be_global_tokenState
-b auto_loop
-
-task_9:
-// Check task is enabled
-// S, global_tokenState
-dup
-// S, global_tokenState, global_tokenState, global_tokenState
-int 2048
-// S, global_tokenState, global_tokenState, global_tokenState, 1
-&
-// S, global_tokenState, global_tokenState, Int
-int 2048
-==
-// S, global_tokenState, Int
-// Check participant is allowed
-txn Sender // Read Sender
-// S, global_tokenState, Int, addr
-PAR_4
-// S, global_tokenState, Int, addr, addr
-==
-// S, global_tokenState, Int, Int
-// Check previous conditions
-&& 
-// S, global_tokenState, Int
-assert // return if zero
-// S, global_tokenState
-
-int 2048
-// S, global_tokenState, consuming token ID
-~
-// S, global_tokenState, Int
-&
-// S, Int
-int 0 
-// S, Int, producing token ID
-|
-// S, to_be_global_tokenState
 b auto_loop
 
 // Automatic transitions (need to be looped as more than one could fire)
 auto_loop:
 // --------------------
 // Transition
-// S, to_be_global_tokenState
 dup
-// S, to_be_global_tokenState, to_be_global_tokenState
-int 48
-// S, global_tokenState, global_tokenState, global_tokenState, 1
+int 16
 &
-// S, global_tokenState, global_tokenState, Int
-int 48
+int 16
 ==
+// Check conditions
+// -------------------
+txna ApplicationArgs 1
+btoi
+int 1
+&
+int 1
+==
+&&
 // S, to_be_global_tokenState, Int
-bnz auto_48
+bnz auto_16
+// S, to_be_global_tokenState
+
+// --------------------
+// Transition
+dup
+int 64
+&
+int 64
+==
+// Check conditions
+// -------------------
+txna ApplicationArgs 1
+btoi
+int 2
+&
+int 2
+==
+&&
+// S, to_be_global_tokenState, Int
+bnz auto_64
+// S, to_be_global_tokenState
+
+// --------------------
+// Transition
+dup
+int 4
+&
+int 4
+==
+// Check conditions
+// -------------------
+txna ApplicationArgs 1
+btoi
+int 4
+&
+int 4
+==
+&&
+// S, to_be_global_tokenState, Int
+bnz auto_4
 // S, to_be_global_tokenState
 
 // no autonomous transitions to be fired
-// check for end (state == 0)
 dup
 // S, to_be_global_tokenState, to_be_global_tokenState
 bz end
@@ -509,14 +415,38 @@ app_global_put
 int 1
 return
 
-auto_48:
-int 48
+auto_16:
+int 16
 // S, global_tokenState, 2
 ~
 // S, global_tokenState, Int
 &
 // S, Int
-int 64 
+int 32 
+// S, Int, 4
+|
+// S, to_be_global_tokenState
+b auto_loop
+auto_64:
+int 64
+// S, global_tokenState, 2
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 256 
+// S, Int, 4
+|
+// S, to_be_global_tokenState
+b auto_loop
+auto_4:
+int 4
+// S, global_tokenState, 2
+~
+// S, global_tokenState, Int
+&
+// S, Int
+int 8 
 // S, Int, 4
 |
 // S, to_be_global_tokenState
@@ -540,3 +470,11 @@ pop
 app_global_del
 int 1
 return
+
+delete:
+dup 
+int 0
+==
+
+update:
+int 0

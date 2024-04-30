@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "algosdk": "^2.7.0",
-    "chorpiler": "^0.11.1",
+    "chorpiler": "^0.12.0",
     "mustache": "^4.2.0"
   }
 }

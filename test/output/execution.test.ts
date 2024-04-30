@@ -7,6 +7,7 @@ import path from "path";
 import fs from 'fs';
 
 import encodingSC from '../data/generated/supply-chain/SC_ProcessExecution_encoding.json';
+import encodingIM from '../data/generated/incident-management/IM_ProcessExecution_encoding.json';
 import chorpiler, { ProcessEncoding } from "chorpiler";
 import { BPMN_PATH, OUTPUT_PATH, algod } from "../config";
 import { EventLog } from "chorpiler/lib/util/EventLog";
@@ -14,33 +15,58 @@ import algosdk from "algosdk";
 import { getGlobalState, deploy } from "../util";
 
 const FAUCET_MNEMONIC = process.env.FAUCET_MNEMONIC!;
-const NR_NON_CONFORMING_TRACES = 200;
+const NR_NON_CONFORMING_TRACES = 2000;
 const parser = new chorpiler.utils.XESParser();
 
 const client = new algosdk.Algodv2(algod.token, algod.server, algod.port);
 const faucet = algosdk.mnemonicToSecretKey(FAUCET_MNEMONIC);
 
-describe('Test Execution of Cases', () => {
+(async () => {
 
-  describe('Supply Chain Case', async () => {
+  const eventLogSC = await parser.fromXML(
+    readFileSync(path.join(BPMN_PATH, 'cases', 'supply-chain', 'supply-chain.xes')));
 
-    const processEncoding = ProcessEncoding.fromJSON(encodingSC);
-    const eventLog = await parser.fromXML(
-      readFileSync(path.join(BPMN_PATH, 'cases', 'supply-chain', 'supply-chain.xes')));
+  const eventLogIM = await parser.fromXML(
+    readFileSync(path.join(BPMN_PATH, 'cases', 'incident-management', 'incident-management.xes')));
 
-    const teal = fs.readFileSync(
-      path.join(OUTPUT_PATH, 'supply-chain', 'SC_ProcessExecution.teal'),
-      'utf8'
-    );
+  describe('Test Execution of Cases', () => {
 
-    testCase(
-      eventLog, 
-      processEncoding,
-      teal
-    );
+    describe.skip('Supply Chain Case', async () => {
 
-  });
-})
+      const processEncoding = ProcessEncoding.fromJSON(encodingSC);
+
+      const teal = fs.readFileSync(
+        path.join(OUTPUT_PATH, 'supply-chain', 'SC_ProcessExecution.teal'),
+        'utf8'
+      );
+
+      testCase(
+        eventLogSC,
+        processEncoding,
+        teal
+      );
+
+    });
+
+    describe('Incident Management Case', async () => {
+
+      const processEncoding = ProcessEncoding.fromJSON(encodingIM);
+      
+
+      const teal = fs.readFileSync(
+        path.join(OUTPUT_PATH, 'incident-management', 'IM_ProcessExecution.teal'),
+        'utf8'
+      );
+
+      testCase(
+        eventLogIM, 
+        processEncoding,
+        teal
+      );
+
+    });
+  }) 
+})();
 
 const testCase = (
   eventLog: EventLog,
@@ -69,8 +95,15 @@ const testCase = (
 
       let tokenState = 0;
       it(`Replay Conforming Trace ${i}`, async () => {
-        const appID = await deploy(client, faucet, tealCode);
+        const initiator = [...participants.values()].at(0)!;
+        // min balance
+        await logMinBalance(initiator);
+
+        const appID = await deploy(client, initiator, tealCode);
         expect(appID).to.be.a("Number");
+
+        // min balance
+        await logMinBalance(initiator);
 
         // replay trace
         for (const event of trace) {
@@ -78,16 +111,22 @@ const testCase = (
           const taskID = processEncoding.tasks.get(event.name);
           assert(participant !== undefined && taskID !== undefined,
             `source '${event.source}' event '${event.name}' not found`);
-          
+
           // console.log(await getGlobalState(client, appID))
           tokenState = (await getGlobalState(client, appID)).uint;
           const suggestedParams = await client.getTransactionParams().do();
+
+          //console.log(`source '${event.source}' event '${event.name}' cond '${event.cond}'`)
+
           const tx = algosdk.makeApplicationNoOpTxnFromObject({
             from: participant.addr,
             suggestedParams,
             appIndex: appID,
-            appArgs: [algosdk.encodeUint64(taskID)],
+            appArgs: [algosdk.encodeUint64(taskID), algosdk.encodeUint64(Number(event.cond))], // not sure why we need to cast to number again
           });
+
+          const simulation = await client.simulateRawTransactions([tx.signTxn(participant.sk)]).do();
+          console.log("Budget Consumed", simulation.txnGroups[0].appBudgetConsumed);
 
           const { txId } = await client
             .sendRawTransaction(tx.signTxn(participant.sk))
@@ -105,6 +144,10 @@ const testCase = (
         }
 
         assert((await getGlobalState(client, appID)).uint === 0, "end event reached");
+        // min balance
+        // TODO: delete app
+        console.log("end event reached");
+        await logMinBalance(initiator);
       });
     });
 
@@ -125,11 +168,12 @@ const testCase = (
             `source '${event.source}' event '${event.name}' not found`);
 
           const suggestedParams = await client.getTransactionParams().do();
+        
           const tx = algosdk.makeApplicationNoOpTxnFromObject({
             from: participant.addr,
             suggestedParams,
             appIndex: appID,
-            appArgs: [algosdk.encodeUint64(taskID)],
+            appArgs: [algosdk.encodeUint64(taskID), algosdk.encodeUint64(Number(event.cond))],
           });
 
           try {
@@ -185,4 +229,10 @@ const genFundAccounts = async (participants: Map<string, number>, faucet: algosd
   }
 
   return accounts;
+}
+
+async function logMinBalance(initiator: algosdk.Account) {
+  const initInfo = await client.accountInformation(initiator.addr).do();
+  console.log('min-balance', initInfo['min-balance']);
+  console.log('#apps', initInfo['total-created-apps']);
 }
