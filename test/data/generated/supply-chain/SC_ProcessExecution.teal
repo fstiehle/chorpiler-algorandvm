@@ -8,19 +8,28 @@
 #define PAR_3 addr [ADDR_PAR_3]
 #define PAR_4 addr [ADDR_PAR_4]
 
+// Check for NoOp
+// -------------------
 txn OnCompletion
-int UpdateApplication
+int NoOp
 ==
-bnz update
+bnz main
 
-TOKEN_STATE // needed later
-TOKEN_STATE
-app_global_get 
-
+// Check for Delete
+// -------------------
 txn OnCompletion
 int DeleteApplication
 ==
 bnz delete
+
+err // disallow all other tx types
+
+main:
+// Get token state
+// -------------------
+TOKEN_STATE // needed later
+TOKEN_STATE
+app_global_get 
 
 // init if necessary
 // -------------------
@@ -29,8 +38,6 @@ int 0
 ==
 bnz init
 
-// main
-// -------------------------------------------------------------
 
 // TASK 0
 // --------------------
@@ -112,9 +119,7 @@ int 9
 ==
 bnz task_9
 
-// fall through
-int 0
-return
+err // fall through
 
 // ----------------------------------------------------------
 task_0:
@@ -386,56 +391,42 @@ int 48
 &
 int 48
 ==
-// S, to_be_global_tokenState, Int
+
 bnz auto_48
-// S, to_be_global_tokenState
 
 // no autonomous transitions to be fired
 dup
-// S, to_be_global_tokenState, to_be_global_tokenState
-bz end
-// S, to_be_global_tokenState
-// return success
+bz end // end reached?, i.e., tokenstate = 0
+
 app_global_put
 int 1
 return
 
 auto_48:
+// consume and produce
+// -------------------
 int 48
-// S, global_tokenState, 2
 ~
-// S, global_tokenState, Int
 &
-// S, Int
 int 64 
-// S, Int, 4
 |
-// S, to_be_global_tokenState
 b auto_loop
 
 init:
-// S, global_tokenState
 pop
-// S
 int 1
-// S, 1
 app_global_put
-// ...
 int 1
-// 1
 return 
 
 end:
-// S, to_be_global_tokenState
 pop
 app_global_del
 int 1
 return
 
 delete:
-dup 
+TOKEN_STATE
+app_global_get 
 int 0
 ==
-
-update:
-int 0

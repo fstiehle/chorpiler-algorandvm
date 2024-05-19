@@ -6,19 +6,28 @@
 #define PAR_{{id}} addr [ADDR_PAR_{{id}}]
 {{/participants}}
 
+// Check for NoOp
+// -------------------
 txn OnCompletion
-int UpdateApplication
+int NoOp
 ==
-bnz update
+bnz main
 
-TOKEN_STATE // needed later
-TOKEN_STATE
-app_global_get 
-
+// Check for Delete
+// -------------------
 txn OnCompletion
 int DeleteApplication
 ==
 bnz delete
+
+err // disallow all other tx types
+
+main:
+// Get token state
+// -------------------
+TOKEN_STATE // needed later
+TOKEN_STATE
+app_global_get 
 
 // init if necessary
 // -------------------
@@ -27,8 +36,6 @@ int 0
 ==
 bnz init
 
-// main
-// -------------------------------------------------------------
 {{#manualTransitions}}
 
 // TASK {{id}}
@@ -40,9 +47,7 @@ int {{id}}
 bnz task_{{id}}
 {{/manualTransitions}}
 
-// fall through
-int 0
-return
+err // fall through
 
 {{#manualTransitions}}
 // ----------------------------------------------------------
@@ -105,59 +110,45 @@ int {{condition}}
 ==
 &&
 {{/condition}}
-// S, to_be_global_tokenState, Int
+
 bnz auto_{{consume}}
-// S, to_be_global_tokenState
 
 {{/autonomousTransitions}}
 // no autonomous transitions to be fired
 dup
-// S, to_be_global_tokenState, to_be_global_tokenState
-bz end
-// S, to_be_global_tokenState
-// return success
+bz end // end reached?, i.e., tokenstate = 0
+
 app_global_put
 int 1
 return
 
 {{#autonomousTransitions}}
 auto_{{consume}}:
+// consume and produce
+// -------------------
 int {{consume}}
-// S, global_tokenState, 2
 ~
-// S, global_tokenState, Int
 &
-// S, Int
 int {{produce}} 
-// S, Int, 4
 |
-// S, to_be_global_tokenState
 b auto_loop
 {{/autonomousTransitions}}
 
 init:
-// S, global_tokenState
 pop
-// S
 int 1
-// S, 1
 app_global_put
-// ...
 int 1
-// 1
 return 
 
 end:
-// S, to_be_global_tokenState
 pop
 app_global_del
 int 1
 return
 
 delete:
-dup 
+TOKEN_STATE
+app_global_get 
 int 0
 ==
-
-update:
-int 0

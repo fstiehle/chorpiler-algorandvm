@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output",
+    "test": "mocha test/index.test.ts && dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output",
     "chain": "sandbox/sandbox"
   },
   "author": "Fabian Stiehle",
