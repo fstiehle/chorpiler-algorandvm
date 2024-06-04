@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "mocha test/index.test.ts && dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output",
-    "chain": "sandbox/sandbox"
+    "test": "mocha test/index.test.ts && dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output --timeout 5000",
+    "chain": "sandbox/sandbox",
+    "test/sdk": "dotenvx run --env-file=.env.test -- mocha test/output/sdk.test.ts"
   },
   "author": "Fabian Stiehle",
   "license": "ISC",

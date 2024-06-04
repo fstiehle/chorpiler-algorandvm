@@ -1,4 +1,4 @@
-// Try: Make a function we can jump to 
+// Try: Make a function we can jump to
 // that does the recuring consume produce logic
 #pragma version 10
 #define TOKEN_STATE byte "s"
@@ -6,34 +6,32 @@
 #define PAR_{{id}} addr [ADDR_PAR_{{id}}]
 {{/participants}}
 
+#define RANGE int 8
+
+#define OFFSET txna ApplicationArgs 2; btoi; RANGE; *; 
+#define EXTRACT OFFSET; RANGE; box_extract; btoi; // extracts S[OFFSET;BYTES]
+
+txn ApplicationID
+int 0 
+==
+bnz return
+
 // Check for NoOp
 // -------------------
 txn OnCompletion
 int NoOp
 ==
-bnz main
+assert
 
-// Check for Delete
-// -------------------
-txn OnCompletion
-int DeleteApplication
-==
-bnz delete
-
-err // disallow all other tx types
+TOKEN_STATE
+box_get
+bz create
 
 main:
 // Get token state
-TOKEN_STATE // needed later
-TOKEN_STATE
-app_global_get 
-
-// init if necessary
-// -------------------
-dup 
-int 0
-==
-bnz init
+TOKEN_STATE // save key
+TOKEN_STATE // load key "s", "s" 
+EXTRACT // "s", int
 
 {{#manualTransitions}}
 
@@ -110,7 +108,13 @@ bnz auto_{{consume}}
 {{/autonomousTransitions}}
 // no autonomous transitions to be fired
 
-app_global_put
+// switch stack positions for replace 3
+store 0
+OFFSET
+load 0
+// "s", byte, Offset, int
+itob // "s", byte (A), int (B), byte (C)
+box_replace // "s", byte
 int 1
 return
 
@@ -125,15 +129,16 @@ int {{produce}}
 b auto_loop
 {{/autonomousTransitions}}
 
-init:
-pop
-int 1
-app_global_put
-int 1
-return 
-
-delete:
+create: // "s"
 TOKEN_STATE
-app_global_get 
+int 128
+box_create
+TOKEN_STATE
 int 0
-==
+byte "\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01"
+box_replace // "s", byte
+b main
+
+return:
+int 1
+return

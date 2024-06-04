@@ -1,0 +1,59 @@
+#pragma version 10
+// BOX!
+#define TOKEN_STATE byte "s"
+#define RANGE int 8
+
+#define OFFSET txna ApplicationArgs 0; btoi; RANGE; *; 
+#define EXTRACT OFFSET; RANGE; box_extract; btoi; // extracts S[OFFSET;BYTES]
+
+txn ApplicationID
+int 0 
+==
+bnz return
+
+txn OnCompletion
+int NoOp
+==
+assert
+
+TOKEN_STATE
+box_get
+bz create
+
+main:
+// TOKEN_STATE // needed later
+TOKEN_STATE
+TOKEN_STATE // "s", "s"
+EXTRACT // "s", int
+
+int 1
+~
+&
+int 0 
+|
+
+// Test
+// switch stack positions for replace
+store 0
+OFFSET
+load 0
+// "s", byte, Offset, int
+itob // "s", byte (A), int (B), byte (C)
+box_replace // "s", byte
+
+int 1
+return 
+
+create: // "s"
+TOKEN_STATE
+int 128
+box_create
+TOKEN_STATE
+int 0
+byte "\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01"
+box_replace // "s", byte
+b main
+
+return:
+int 1
+return

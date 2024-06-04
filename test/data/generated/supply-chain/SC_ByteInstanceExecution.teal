@@ -1,12 +1,22 @@
-// Try: Make a function we can jump to 
+// Try: Make a function we can jump to
 // that does the recuring consume produce logic
 #pragma version 10
-#define TOKEN_STATE byte "s"
-#define PAR_0 addr 77MIPNUBMBTHZDODLZ4PG5DV3Q3OHEYFOA5264BOOPKRSH5JZYP6S4SIPE
-#define PAR_1 addr GNWHYS63JZE3KP5ZR6FHVDZQEL3HOPPXFWJHNVUT6FGC4WV7QQ2UEVGIQ4
-#define PAR_2 addr OHNQWVTGTN7HWL6XSEOZZN6QEGAHAAZF25BPHUEIEYS4A4TTTXNK4GK4BM
-#define PAR_3 addr 4MK3NEZBIMN2ASBMOZDP3QQ4CZP23PKK4KNCAF3EB5IFNXQFPSK72KVIRM
-#define PAR_4 addr FDITURA4Z25I6HCOAI6W2FMQXIBIWB2V2INBMLDCXASC2P7YBE5NHLTDN4
+#define TOKEN_STATE byte ""
+#define PAR_0 addr [ADDR_PAR_0]
+#define PAR_1 addr [ADDR_PAR_1]
+#define PAR_2 addr [ADDR_PAR_2]
+#define PAR_3 addr [ADDR_PAR_3]
+#define PAR_4 addr [ADDR_PAR_4]
+
+#define RANGE int 8
+
+#define OFFSET txna ApplicationArgs 2; btoi; RANGE; *; 
+#define EXTRACT OFFSET; RANGE; extract3; btoi; // extracts S[OFFSET;BYTES]
+
+txn ApplicationID
+int 0 
+==
+bnz create
 
 // Check for NoOp
 // -------------------
@@ -15,27 +25,16 @@ int NoOp
 ==
 bnz main
 
-// Check for Delete
-// -------------------
-txn OnCompletion
-int DeleteApplication
-==
-bnz delete
-
 err // disallow all other tx types
 
 main:
 // Get token state
-TOKEN_STATE // needed later
-TOKEN_STATE
-app_global_get 
+TOKEN_STATE // save key
+TOKEN_STATE // load key "s", "s" 
+app_global_get // "s", byte
 
-// init if necessary
-// -------------------
-dup 
-int 0
-==
-bnz init
+dup // "s", byte, byte
+EXTRACT // "s", byte, int
 
 
 // TASK 0
@@ -110,6 +109,14 @@ int 8
 ==
 bnz task_8
 
+// TASK 9
+// --------------------
+txna ApplicationArgs 0
+btoi
+int 9
+==
+bnz task_9
+
 err // fall through
 
 // ----------------------------------------------------------
@@ -145,7 +152,7 @@ int 2
 ==
 // Check participant is allowed
 txn Sender 
-PAR_1
+PAR_4
 ==
 
 && // Check previous
@@ -155,34 +162,11 @@ assert // return if zero
 int 2
 ~
 &
-int 4 
+int 12 
 |
 b auto_loop
 // ----------------------------------------------------------
 task_2:
-// Check task is enabled
-dup // duplicate current token state on stack
-int 8
-&
-int 8
-==
-// Check participant is allowed
-txn Sender 
-PAR_1
-==
-
-&& // Check previous
-assert // return if zero
-
-// consume and produce
-int 8
-~
-&
-int 0 
-|
-b auto_loop
-// ----------------------------------------------------------
-task_3:
 // Check task is enabled
 dup // duplicate current token state on stack
 int 4
@@ -205,53 +189,30 @@ int 16
 |
 b auto_loop
 // ----------------------------------------------------------
+task_3:
+// Check task is enabled
+dup // duplicate current token state on stack
+int 8
+&
+int 8
+==
+// Check participant is allowed
+txn Sender 
+PAR_1
+==
+
+&& // Check previous
+assert // return if zero
+
+// consume and produce
+int 8
+~
+&
+int 32 
+|
+b auto_loop
+// ----------------------------------------------------------
 task_4:
-// Check task is enabled
-dup // duplicate current token state on stack
-int 32
-&
-int 32
-==
-// Check participant is allowed
-txn Sender 
-PAR_2
-==
-
-&& // Check previous
-assert // return if zero
-
-// consume and produce
-int 32
-~
-&
-int 8 
-|
-b auto_loop
-// ----------------------------------------------------------
-task_5:
-// Check task is enabled
-dup // duplicate current token state on stack
-int 16
-&
-int 16
-==
-// Check participant is allowed
-txn Sender 
-PAR_2
-==
-
-&& // Check previous
-assert // return if zero
-
-// consume and produce
-int 16
-~
-&
-int 64 
-|
-b auto_loop
-// ----------------------------------------------------------
-task_6:
 // Check task is enabled
 dup // duplicate current token state on stack
 int 64
@@ -274,7 +235,7 @@ int 128
 |
 b auto_loop
 // ----------------------------------------------------------
-task_7:
+task_5:
 // Check task is enabled
 dup // duplicate current token state on stack
 int 128
@@ -283,7 +244,7 @@ int 128
 ==
 // Check participant is allowed
 txn Sender 
-PAR_4
+PAR_2
 ==
 
 && // Check previous
@@ -297,12 +258,35 @@ int 256
 |
 b auto_loop
 // ----------------------------------------------------------
-task_8:
+task_6:
 // Check task is enabled
 dup // duplicate current token state on stack
 int 256
 &
 int 256
+==
+// Check participant is allowed
+txn Sender 
+PAR_2
+==
+
+&& // Check previous
+assert // return if zero
+
+// consume and produce
+int 256
+~
+&
+int 512 
+|
+b auto_loop
+// ----------------------------------------------------------
+task_7:
+// Check task is enabled
+dup // duplicate current token state on stack
+int 512
+&
+int 512
 ==
 // Check participant is allowed
 txn Sender 
@@ -313,10 +297,56 @@ PAR_3
 assert // return if zero
 
 // consume and produce
-int 256
+int 512
 ~
 &
-int 32 
+int 1024 
+|
+b auto_loop
+// ----------------------------------------------------------
+task_8:
+// Check task is enabled
+dup // duplicate current token state on stack
+int 1024
+&
+int 1024
+==
+// Check participant is allowed
+txn Sender 
+PAR_4
+==
+
+&& // Check previous
+assert // return if zero
+
+// consume and produce
+int 1024
+~
+&
+int 2048 
+|
+b auto_loop
+// ----------------------------------------------------------
+task_9:
+// Check task is enabled
+dup // duplicate current token state on stack
+int 2048
+&
+int 2048
+==
+// Check participant is allowed
+txn Sender 
+PAR_4
+==
+
+&& // Check previous
+assert // return if zero
+
+// consume and produce
+int 2048
+~
+&
+int 0 
 |
 b auto_loop
 
@@ -325,97 +355,37 @@ auto_loop:
 // --------------------
 // Transition
 dup
-int 16
+int 48
 &
-int 16
+int 48
 ==
-// Check conditions
-txna ApplicationArgs 1
-btoi
-int 1
-&
-int 1
-==
-&&
 
-bnz auto_16
-
-// --------------------
-// Transition
-dup
-int 64
-&
-int 64
-==
-// Check conditions
-txna ApplicationArgs 1
-btoi
-int 2
-&
-int 2
-==
-&&
-
-bnz auto_64
-
-// --------------------
-// Transition
-dup
-int 4
-&
-int 4
-==
-// Check conditions
-txna ApplicationArgs 1
-btoi
-int 4
-&
-int 4
-==
-&&
-
-bnz auto_4
+bnz auto_48
 
 // no autonomous transitions to be fired
 
-app_global_put
-int 1
-return
-
-auto_16:
-// consume and produce
-int 16
-~
-&
-int 32 
-|
-b auto_loop
-auto_64:
-// consume and produce
-int 64
-~
-&
-int 256 
-|
-b auto_loop
-auto_4:
-// consume and produce
-int 4
-~
-&
-int 8 
-|
-b auto_loop
-
-init:
-pop
-int 1
-app_global_put
+// switch stack positions for replace 3
+store 0
+OFFSET
+load 0
+// "s", byte, Offset, int
+itob // "s", byte (A), int (B), byte (C)
+replace3 // "s", byte
+app_global_put //
 int 1
 return 
 
-delete:
+auto_48:
+// consume and produce
+int 48
+~
+&
+int 64 
+|
+b auto_loop
+
+create: // "s"
 TOKEN_STATE
-app_global_get 
-int 0
-==
+byte "\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01"
+app_global_put
+int 1

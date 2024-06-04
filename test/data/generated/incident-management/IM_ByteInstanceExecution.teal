@@ -1,12 +1,22 @@
-// Try: Make a function we can jump to 
+// Try: Make a function we can jump to
 // that does the recuring consume produce logic
 #pragma version 10
-#define TOKEN_STATE byte "s"
-#define PAR_0 addr 77MIPNUBMBTHZDODLZ4PG5DV3Q3OHEYFOA5264BOOPKRSH5JZYP6S4SIPE
-#define PAR_1 addr GNWHYS63JZE3KP5ZR6FHVDZQEL3HOPPXFWJHNVUT6FGC4WV7QQ2UEVGIQ4
-#define PAR_2 addr OHNQWVTGTN7HWL6XSEOZZN6QEGAHAAZF25BPHUEIEYS4A4TTTXNK4GK4BM
-#define PAR_3 addr 4MK3NEZBIMN2ASBMOZDP3QQ4CZP23PKK4KNCAF3EB5IFNXQFPSK72KVIRM
-#define PAR_4 addr FDITURA4Z25I6HCOAI6W2FMQXIBIWB2V2INBMLDCXASC2P7YBE5NHLTDN4
+#define TOKEN_STATE byte ""
+#define PAR_0 addr [ADDR_PAR_0]
+#define PAR_1 addr [ADDR_PAR_1]
+#define PAR_2 addr [ADDR_PAR_2]
+#define PAR_3 addr [ADDR_PAR_3]
+#define PAR_4 addr [ADDR_PAR_4]
+
+#define RANGE int 8
+
+#define OFFSET txna ApplicationArgs 2; btoi; RANGE; *; 
+#define EXTRACT OFFSET; RANGE; extract3; btoi; // extracts S[OFFSET;BYTES]
+
+txn ApplicationID
+int 0 
+==
+bnz create
 
 // Check for NoOp
 // -------------------
@@ -15,27 +25,16 @@ int NoOp
 ==
 bnz main
 
-// Check for Delete
-// -------------------
-txn OnCompletion
-int DeleteApplication
-==
-bnz delete
-
 err // disallow all other tx types
 
 main:
 // Get token state
-TOKEN_STATE // needed later
-TOKEN_STATE
-app_global_get 
+TOKEN_STATE // save key
+TOKEN_STATE // load key "s", "s" 
+app_global_get // "s", byte
 
-// init if necessary
-// -------------------
-dup 
-int 0
-==
-bnz init
+dup // "s", byte, byte
+EXTRACT // "s", byte, int
 
 
 // TASK 0
@@ -378,9 +377,16 @@ bnz auto_4
 
 // no autonomous transitions to be fired
 
-app_global_put
+// switch stack positions for replace 3
+store 0
+OFFSET
+load 0
+// "s", byte, Offset, int
+itob // "s", byte (A), int (B), byte (C)
+replace3 // "s", byte
+app_global_put //
 int 1
-return
+return 
 
 auto_16:
 // consume and produce
@@ -407,15 +413,8 @@ int 8
 |
 b auto_loop
 
-init:
-pop
-int 1
+create: // "s"
+TOKEN_STATE
+byte "\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01"
 app_global_put
 int 1
-return 
-
-delete:
-TOKEN_STATE
-app_global_get 
-int 0
-==

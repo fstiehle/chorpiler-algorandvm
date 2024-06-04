@@ -20,14 +20,20 @@ export const compileProgram = async (
   return compiledBytes;
 }
 
-export const deploy = async (client: algosdk.Algodv2, acct: algosdk.Account, tealCode: string) => {
+export const deploy = async (
+  client: algosdk.Algodv2, 
+  acct: algosdk.Account, 
+  tealCode: string,
+  ints = 1,
+  bytes = 0
+) => {
   const suggestedParams = await client.getTransactionParams().do();
   const appCreateTxn = algosdk.makeApplicationCreateTxnFromObject({
     from: acct.addr,
     approvalProgram: await compileProgram(client, tealCode),
     clearProgram: await compileProgram(client, clear),
-    numGlobalByteSlices: 0,
-    numGlobalInts: 1,
+    numGlobalByteSlices: bytes,
+    numGlobalInts: ints,
     numLocalByteSlices: 0,
     numLocalInts: 0,
     suggestedParams,
@@ -52,17 +58,37 @@ export const deploy = async (client: algosdk.Algodv2, acct: algosdk.Account, tea
 export const getGlobalState = async (client: algosdk.Algodv2, appId: number) => {
   const appInfo = await client.getApplicationByID(appId).do();
   if (!('global-state' in appInfo.params)) {
-    return { uint: 0 }
+    return { uint: 0, byte: "" }
   }
 
   const globalState = appInfo.params['global-state'][0];
-  //console.log(`Raw global state ${JSON.stringify(globalState)}`);
+  //console.log(`Raw global state ${JSON.stringify(appInfo.params['global-state'])}`);
 
   // decode b64 string key with Buffer
-  const globalKey = Buffer.from(globalState.key, 'base64').toString();
+  // const globalKey = Buffer.from(globalState.key, 'base64').toString();
   // decode b64 address value with encodeAddress and Buffer
-  const globalValue = globalState.value.uint;
+  // const globalValue = globalState.value.uint;
 
   //console.log(`Decoded global state ${globalKey}: ${globalValue}`);
-  return { uint: globalValue as number }
+  return { uint: globalState.value.uint as number, byte: Buffer.from(globalState.value.bytes, "base64") }
+}
+
+export const sendPayment = async (
+  client: algosdk.Algodv2, 
+  from: algosdk.Account, 
+  to: string, 
+  amount: number = 1000000) => {
+
+  // from: https://developer.algorand.org/docs/sdks/javascript/#build-first-transaction
+  const suggestedParams = await client.getTransactionParams().do();
+  const tx = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+    from: from.addr,
+    suggestedParams,
+    to: to,
+    amount: amount
+  });
+
+  const signedTxn = tx.signTxn(from.sk);
+  const { txId } = await client.sendRawTransaction(signedTxn).do();
+  return txId;
 }

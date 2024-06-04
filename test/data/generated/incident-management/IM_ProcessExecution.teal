@@ -26,7 +26,6 @@ err // disallow all other tx types
 
 main:
 // Get token state
-// -------------------
 TOKEN_STATE // needed later
 TOKEN_STATE
 app_global_get 
@@ -116,14 +115,12 @@ err // fall through
 // ----------------------------------------------------------
 task_0:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 1
 &
 int 1
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_0
 ==
@@ -132,7 +129,6 @@ PAR_0
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 1
 ~
 &
@@ -142,14 +138,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_1:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 2
 &
 int 2
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_1
 ==
@@ -158,7 +152,6 @@ PAR_1
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 2
 ~
 &
@@ -168,14 +161,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_2:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 8
 &
 int 8
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_1
 ==
@@ -184,7 +175,6 @@ PAR_1
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 8
 ~
 &
@@ -194,14 +184,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_3:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 4
 &
 int 4
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_1
 ==
@@ -210,7 +198,6 @@ PAR_1
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 4
 ~
 &
@@ -220,14 +207,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_4:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 32
 &
 int 32
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_2
 ==
@@ -236,7 +221,6 @@ PAR_2
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 32
 ~
 &
@@ -246,14 +230,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_5:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 16
 &
 int 16
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_2
 ==
@@ -262,7 +244,6 @@ PAR_2
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 16
 ~
 &
@@ -272,14 +253,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_6:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 64
 &
 int 64
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_3
 ==
@@ -288,7 +267,6 @@ PAR_3
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 64
 ~
 &
@@ -298,14 +276,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_7:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 128
 &
 int 128
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_4
 ==
@@ -314,7 +290,6 @@ PAR_4
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 128
 ~
 &
@@ -324,14 +299,12 @@ b auto_loop
 // ----------------------------------------------------------
 task_8:
 // Check task is enabled
-// -------------------
 dup // duplicate current token state on stack
 int 256
 &
 int 256
 ==
 // Check participant is allowed
-// -------------------
 txn Sender 
 PAR_3
 ==
@@ -340,7 +313,6 @@ PAR_3
 assert // return if zero
 
 // consume and produce
-// -------------------
 int 256
 ~
 &
@@ -358,7 +330,6 @@ int 16
 int 16
 ==
 // Check conditions
-// -------------------
 txna ApplicationArgs 1
 btoi
 int 1
@@ -377,7 +348,6 @@ int 64
 int 64
 ==
 // Check conditions
-// -------------------
 txna ApplicationArgs 1
 btoi
 int 2
@@ -396,7 +366,6 @@ int 4
 int 4
 ==
 // Check conditions
-// -------------------
 txna ApplicationArgs 1
 btoi
 int 4
@@ -408,8 +377,6 @@ int 4
 bnz auto_4
 
 // no autonomous transitions to be fired
-dup
-bz end // end reached?, i.e., tokenstate = 0
 
 app_global_put
 int 1
@@ -417,7 +384,6 @@ return
 
 auto_16:
 // consume and produce
-// -------------------
 int 16
 ~
 &
@@ -426,7 +392,6 @@ int 32
 b auto_loop
 auto_64:
 // consume and produce
-// -------------------
 int 64
 ~
 &
@@ -435,7 +400,6 @@ int 256
 b auto_loop
 auto_4:
 // consume and produce
-// -------------------
 int 4
 ~
 &
@@ -449,12 +413,6 @@ int 1
 app_global_put
 int 1
 return 
-
-end:
-pop
-app_global_del
-int 1
-return
 
 delete:
 TOKEN_STATE
