@@ -94,6 +94,8 @@ const testCase = (
 
       let tokenState = 0;
       it(`Replay Conforming Trace ${i}`, async () => {
+        let tbudget = 0;
+        let tcost = 0;
         const initiator = [...participants.values()].at(0)!;
         // account for min balance
         const [minBalance, numberOfApps] = await getMinBalance(initiator);
@@ -107,7 +109,8 @@ const testCase = (
         const [minBalanceAfter, numberOfAppsAfter] = await getMinBalance(initiator);
         assert(numberOfApps + 1 === numberOfAppsAfter);
         // account for algos
-        console.log("\t Deployment transaction cost", initBal - (await client.accountInformation(initiator.addr).do()).amount);
+        tcost += initBal - (await client.accountInformation(initiator.addr).do()).amount;
+        console.log("\t Deployment transaction cost", tcost);
         //console.log("\t Min-Balance Change", minBalance - minBalanceAfter);
 
         // replay trace
@@ -131,7 +134,9 @@ const testCase = (
           });
 
           const simulation = await client.simulateRawTransactions([tx.signTxn(participant.sk)]).do();
-          console.log("\t Budget for task", taskID, simulation.txnGroups[0].appBudgetConsumed);
+          const bud = simulation.txnGroups[0].appBudgetConsumed;
+          //console.log("\t Budget for task", taskID, bud);
+          tbudget += Number(bud)
 
           // account for algos
           const parBal = (await client.accountInformation(participant.addr).do()).amount;
@@ -148,7 +153,8 @@ const testCase = (
             16 );
 
           // account for algos
-          console.log("\t Transaction cost", parBal - (await client.accountInformation(participant.addr).do()).amount)
+          //console.log("\t Transaction cost", parBal - (await client.accountInformation(participant.addr).do()).amount)
+          tcost += parBal - (await client.accountInformation(participant.addr).do()).amount;
           const [minBalanceAfter, __] = await getMinBalance(participant);
           assert(minBalance - minBalanceAfter === 0);
 
@@ -157,6 +163,10 @@ const testCase = (
           expect(newState).to.not.eql(tokenState);
           tokenState = newState;
         }
+
+        console.log("\t Executed Tasks", trace.events.length)
+        console.log("\t Avg budget", tbudget / trace.events.length)
+        console.log("\t tx cost", tcost )
 
         assert((await getGlobalState(client, appID)).uint === 0, "end event is reached");
         // min balance

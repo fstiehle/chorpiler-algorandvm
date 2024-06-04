@@ -90,7 +90,8 @@ const testMultiInstance = (
 
     // Requires a foreach to work: https://github.com/mochajs/mocha/issues/3074
     eventLog.traces.forEach((trace, i) => {
-
+      let tbudget = 0;
+      let tcost = 0;
       let tokenState = new Uint8Array();
       it(`Replay Conforming Trace ${i} on all instances`, async () => {
         const initiator = [...participants.values()].at(0)!;
@@ -110,7 +111,8 @@ const testMultiInstance = (
         const [minBalanceAfter, numberOfAppsAfter] = await getMinBalance(client, initiator.addr);
         assert(numberOfApps + 1 === numberOfAppsAfter);
         // account for algos
-        console.log("\tDeployment transaction cost", initBal - (await client.accountInformation(initiator.addr).do()).amount);
+        tcost += initBal - (await client.accountInformation(initiator.addr).do()).amount
+        console.log("\tDeployment transaction cost", tcost);
         //console.log("\tMin-Balance Change", minBalance - minBalanceAfter);
 
         // replay trace
@@ -129,6 +131,7 @@ const testMultiInstance = (
           //console.log(`source '${event.source}' event '${event.name}' cond '${event.cond}'`)
 
           const budget = new Array<number>(16).fill(0);
+          const txcost = new Array<number>(16).fill(0);
           for (let case_id = 0; case_id < 16; case_id++) {
             
             const tx = algosdk.makeApplicationNoOpTxnFromObject({
@@ -159,10 +162,10 @@ const testMultiInstance = (
             await algosdk.waitForConfirmation(
               client,
               txId,
-              16 );
+              4 );
 
             // account for algos
-            //console.log("Transaction cost", parBal - (await client.accountInformation(participant.addr).do()).amount)
+            txcost[taskID] += (parBal - (await client.accountInformation(participant.addr).do()).amount)
             const [minBalanceAfter, __] = await getMinBalance(client, participant.addr);
             assert(minBalance - minBalanceAfter === 0);
 
@@ -172,10 +175,14 @@ const testMultiInstance = (
             //expect(newState).to.not.eql(tokenState);
             //tokenState = newState;
           }
-
-          console.log("\t average budget task", taskID, budget[taskID] / 16)
+          
+          tcost += txcost[taskID] / 16;
+          tbudget += budget[taskID] / 16;
         }
-
+        
+        console.log("\t Executed Tasks", trace.events.length)
+        console.log("\t Avg budget", tbudget / trace.events.length)
+        console.log("\t Tx cost", tcost)
         //console.log(await client.getApplicationBoxes(appID).do())
         const b = await client.getApplicationBoxByName(appID, new Uint8Array(Buffer.from('s'))).do()
         const markings = arrayBufferToBigInt64Array(b.value.buffer);
