@@ -23,8 +23,8 @@ npm install chorpiler
 See below example.
 
 ```js
-import chorpiler from 'chorpiler';
-import algchor from 'chorpiler/algorandvm';
+import chorpiler, { ProcessEncoding } from 'chorpiler';
+import algchor from '@chorpiler/algorandvm';
 
 const parser = new chorpiler.Parser();
 
@@ -37,30 +37,31 @@ Complete example usage to parse and generate.
 ```js
 import * as fs from 'fs';
 import chorpiler, { ProcessEncoding } from 'chorpiler';
-import algchor from 'chorpiler/algorandvm';
+import algchor from '@chorpiler/algorandvm';
+import path from 'path';
 
 const parser = new chorpiler.Parser();
 
 const contractGenerator = new algchor
   .generators.teal.DefaultContractGenerator();
 
-const bpmnXML = fs.readFileSync("yourBPMNXML.bpmn");   
+const bpmnXML = fs.readFileSync(path.join(__dirname, "./../bpmn/incident-management.bpmn"));   
 // parse BPMN file into petri net
-const iNet = await parser.fromXML(bpmnXML);
+parser.fromXML(bpmnXML).then((e) => {
 
 // compile to smart contract
-contractGenerator.compile(iNet)
+contractGenerator.compile(e)
 .then((gen) => {
   fs.writeFileSync(
-    "Process.sol", 
+    "Process.teal", 
     gen.target, 
     { flag: 'w+' }
   );
-  console.log("Process.sol generated.");
+  console.log("Process.teal generated.");
   // log encoding of participants and tasks, 
   // can also be written to a .json file
   console.log(ProcessEncoding.toJSON(gen.encoding));
-})
+})})
 .catch(err => console.error(err));
 ```
 
