@@ -8,7 +8,7 @@
     "lib/**/*"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && ncp ./src/Generator/templates ./lib/Generator/templates",
     "test": "mocha test/index.test.ts && dotenvx run --env-file=.env.test -- mocha test/generator && dotenvx run --env-file=.env.test -- mocha test/output --timeout 5000",
     "chain": "sandbox/sandbox",
     "test/sdk": "dotenvx run --env-file=.env.test -- mocha test/output/sdk.test.ts"
@@ -30,6 +30,7 @@
   "dependencies": {
     "algosdk": "^2.7.0",
     "chorpiler": "^0.12.0",
-    "mustache": "^4.2.0"
+    "mustache": "^4.2.0",
+    "ncp": "^2.0.0"
   }
 }
