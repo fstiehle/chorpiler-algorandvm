@@ -102,10 +102,7 @@ const testMultiInstance = (
 
         const appID = await deploy(client, initiator, tealCode, 0, 0);
         expect(appID).to.be.a("Number");
-        const appAddr = algosdk.getApplicationAddress(appID);
-        // we need an extra tx for this
-        const payTx = await sendPayment(client, faucet, appAddr, 1000000);
-        await algosdk.waitForConfirmation(client, payTx, 12);
+        
         //console.log(await getMinBalance(client, appAddr));
         // min balance
         const [minBalanceAfter, numberOfAppsAfter] = await getMinBalance(client, initiator.addr);
@@ -114,6 +111,12 @@ const testMultiInstance = (
         tcost += initBal - (await client.accountInformation(initiator.addr).do()).amount
         console.log("\tDeployment transaction cost", tcost);
         //console.log("\tMin-Balance Change", minBalance - minBalanceAfter);
+
+        const appAddr = algosdk.getApplicationAddress(appID);
+        // we need an extra tx for this
+        const payTx = await sendPayment(client, faucet, appAddr, 1000000);
+        await algosdk.waitForConfirmation(client, payTx, 12);
+        tcost += 1000;
 
         // replay trace
         for (const event of trace) {
@@ -192,7 +195,7 @@ const testMultiInstance = (
         //assert((await getGlobalState(client, appID)).byte === 0, "end event reached");
         // min balance
         console.log("\t app minimum balance requirement", (await getMinBalance(client, appAddr))[0]);
-        console.log("\t initiator balance change", minBalance - (await getMinBalance(client, initiator.addr))[0]);
+        console.log("\t initiator minimum balance change", minBalance - (await getMinBalance(client, initiator.addr))[0]);
       });
     });
   });

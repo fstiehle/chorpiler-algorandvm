@@ -185,7 +185,7 @@ const testMultiInstance = (
         })
         //assert((await getGlobalState(client, appID)).byte === 0, "end event reached");
         // min balance
-        console.log("\t initiator balance change", minBalance - (await getMinBalance(initiator))[0]);
+        console.log("\t initiator minimum balance change", minBalance - (await getMinBalance(initiator))[0]);
       });
     });
   });

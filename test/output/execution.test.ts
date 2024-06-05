@@ -172,7 +172,7 @@ const testCase = (
         // min balance
         // TODO: delete app
         // console.log("end event reached");
-        console.log("\t initiator balance change", minBalance - (await getMinBalance(initiator))[0]);
+        console.log("\t initiator minimum balance change", minBalance - (await getMinBalance(initiator))[0]);
       });
     });
 
