@@ -18,6 +18,7 @@ Install and use through [npm](https://www.npmjs.com/package/chorpiler).
 
 ```
 npm install chorpiler
+npm install @chorpiler/algorandvm
 ```
 
 See below example.
